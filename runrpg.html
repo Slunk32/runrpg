@@ -59,6 +59,7 @@
                 <h2 style="margin-bottom: 20px;">Enter Your Run Data</h2>
                 <div style="text-align: right; margin-bottom: 15px; display: flex; gap: 10px; justify-content: flex-end;">
                     <button onclick="showInventory()" style="padding: 8px 15px; background: rgba(255,215,0,0.2); border: 1px solid #ffd700; border-radius: 5px; color: #ffd700; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px;">📦 View Inventory (<span id="inventoryCount">0</span>)</button>
+                    <button onclick="showCharacterScreen()" style="padding: 8px 15px; background: rgba(255,215,0,0.2); border: 1px solid #ffd700; border-radius: 5px; color: #ffd700; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px;">🧙‍♂️ Character</button>
                     <button onclick="resetAllData()" style="padding: 8px 15px; background: rgba(239,68,68,0.2); border: 1px solid #EF4444; border-radius: 5px; color: #EF4444; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px;">🔄 Reset Data</button>
                 </div>
                 <div class="input-group">
@@ -85,6 +86,102 @@
                 </div>
                 <div class="loot-items" id="lootItems"></div>
             </div>
+        </div>
+        <div id="characterScreen" class="hidden">
+                <h1>⚔️ Character & Equipment</h1>
+        <div class="character-container">
+            <div class="character-left">
+                <h2>Character Stats</h2>
+                <div class="character-stats">
+                    <div class="stat-row">
+                        <span class="stat-name">⚔️ Power</span>
+                        <span class="stat-value" id="totalPower">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-name">🏃 Speed</span>
+                        <span class="stat-value" id="totalSpeed">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-name">❤️ Health</span>
+                        <span class="stat-value" id="totalHealth">0</span>
+                    </div>
+                    <div class="stat-row boss-score">
+                        <span class="stat-name">👹 Boss Score</span>
+                        <span class="stat-value" id="bossScore">0</span>
+                    </div>
+                </div>
+                
+                <div class="character-visual">
+                    <div class="character-sprite">🧙</div>
+                </div>
+            </div> 
+            <div class="character-middle">
+                <h2>Equipment Slots</h2>
+                <div class="equipment-slots">
+                    <div class="equipment-slot" data-slot="helmet">
+                        <div class="slot-label">Helmet</div>
+                        <div class="slot-content" id="slot-helmet">
+                            <span class="empty-slot">Empty</span>
+                        </div>
+                    </div>
+                    <div class="equipment-slot" data-slot="weapon">
+                        <div class="slot-label">Weapon</div>
+                        <div class="slot-content" id="slot-weapon">
+                            <span class="empty-slot">Empty</span>
+                        </div>
+                    </div>
+                    <div class="equipment-slot" data-slot="chest">
+                        <div class="slot-label">Chest</div>
+                        <div class="slot-content" id="slot-chest">
+                            <span class="empty-slot">Empty</span>
+                        </div>
+                    </div>
+                    <div class="equipment-slot" data-slot="gloves">
+                        <div class="slot-label">Gloves</div>
+                        <div class="slot-content" id="slot-gloves">
+                            <span class="empty-slot">Empty</span>
+                        </div>
+                    </div>
+                    <div class="equipment-slot" data-slot="boots">
+                        <div class="slot-label">Boots</div>
+                        <div class="slot-content" id="slot-boots">
+                            <span class="empty-slot">Empty</span>
+                        </div>
+                    </div>
+                    <div class="equipment-slot" data-slot="ring">
+                        <div class="slot-label">Ring 1</div>
+                        <div class="slot-content" id="slot-ring1">
+                            <span class="empty-slot">Empty</span>
+                        </div>
+                    </div>
+                    <div class="equipment-slot" data-slot="ring">
+                        <div class="slot-label">Ring 2</div>
+                        <div class="slot-content" id="slot-ring2">
+                            <span class="empty-slot">Empty</span>
+                        </div>
+                    </div>
+                    <div class="equipment-slot" data-slot="neck">
+                        <div class="slot-label">Accessory</div>
+                        <div class="slot-content" id="slot-neck">
+                            <span class="empty-slot">Empty</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="character-right">
+                <h2>Inventory</h2>
+                <div class="inventory-filter">
+                    <button class="filter-btn active" onclick="filterInventory('all')">All</button>
+                    <button class="filter-btn" onclick="filterInventory('weapon')">Weapons</button>
+                    <button class="filter-btn" onclick="filterInventory('armor')">Armor</button>
+                    <button class="filter-btn" onclick="filterInventory('accessory')">Accessories</button>
+                </div>
+                <div class="character-inventory" id="characterInventory">
+                    <!-- Items will be populated here -->
+                </div>
+            </div>
+        </div>
+            <button class="back-btn" onclick="showLootSystem()">← Back to Runs</button>
         </div>
     </div>
     <script src="script.js"></script>

@@ -285,7 +285,7 @@ function generateRandomLoot(performanceScore) {
             rarity: rarity,
             icon: gear.icon,
             stats: stats,
-            timestamp: Date.now()
+            timestamp: Date.now() + i
         });
     }
     
@@ -390,13 +390,16 @@ function displayRunSummary(distance, time, pace, elevation, performanceScore, lo
         <div class="summary-grid">
             <div class="stat-box" style="grid-column: 1 / -1;">
                 <div class="stat-value loot-chances-grid">
-                    ${rarities.map(rarity => `
+                    ${rarities.map(rarity => {
+                        const basePercent = Math.round((lootChances.base[rarity] / Object.values(lootChances.base).reduce((a,b) => a+b, 0)) * 100);
+                        return `
                         <div class="loot-chance-item">
                             <div class="loot-chance-percent rarity-color-${rarity}">${Math.round(lootChances.chances[rarity])}%</div>
                             <div class="rarity-color-${rarity}" style="font-size: 12px; text-transform: uppercase; margin-bottom: 2px;">${rarity}</div>
+                            <div style="font-size: 11px; opacity: 0.6; margin-bottom: 2px;">Base: ${basePercent}%</div>
                             <small class="loot-chance-change ${getChangeClass(roundedChanges[rarity])}">(${roundedChanges[rarity] >= 0 ? '+' : ''}${roundedChanges[rarity]}%)</small>
                         </div>
-                    `).join('')}
+                    `}).join('')}
                 </div>
             </div>
         </div>
@@ -545,21 +548,53 @@ function showInventory() {
 }
 
 // Reset data function (for testing/reset)
+// Reset data function (for testing/reset)
 function resetAllData() {
     if (confirm('Are you sure you want to reset all data? This will clear your baseline settings and delete all collected loot.')) {
         try {
+            // Clear localStorage
             localStorage.removeItem('runrpg_baseline');
             localStorage.removeItem('runrpg_loot');
+            localStorage.removeItem('runrpg_equipped');
             
             // Reset global variables
             userBaseline = {};
             allLootCollected = [];
             currentLoot = [];
             selections = {};
+            equippedGear = {
+                helmet: null,
+                weapon: null,
+                chest: null,
+                gloves: null,
+                boots: null,
+                ring1: null,
+                ring2: null,
+                neck: null
+            };
+            
+            // Force update all equipment slots to show empty
+            const slots = ['helmet', 'weapon', 'chest', 'gloves', 'boots', 'ring1', 'ring2', 'neck'];
+            slots.forEach(slot => {
+                const slotElement = document.getElementById(`slot-${slot}`);
+                if (slotElement) {
+                    slotElement.innerHTML = '<span class="empty-slot">Empty</span>';
+                }
+            });
+            
+            // Reset character stats to 0
+            const statElements = ['totalPower', 'totalSpeed', 'totalHealth', 'bossScore'];
+            statElements.forEach(stat => {
+                const element = document.getElementById(stat);
+                if (element) {
+                    element.textContent = '0';
+                }
+            });
             
             // Show setup screen again
             document.getElementById('setupScreen').classList.remove('hidden');
             document.getElementById('lootSystem').classList.add('hidden');
+            document.getElementById('characterScreen').classList.add('hidden');
             
             // Clear any selected options
             document.querySelectorAll('.option.selected').forEach(option => {
@@ -602,5 +637,198 @@ document.addEventListener('keydown', function(e) {
         showInventory();
     }
 });
+
+// Character system variables
+let equippedGear = {
+    helmet: null,
+    weapon: null,
+    chest: null,
+    gloves: null,
+    boots: null,
+    ring1: null,
+    ring2: null,
+    neck: null
+};
+
+// Load equipped gear
+function loadEquippedGear() {
+    try {
+        const saved = localStorage.getItem('runrpg_equipped');
+        if (saved) {
+            equippedGear = JSON.parse(saved);
+        }
+    } catch (error) {
+        console.log('Could not load equipped gear:', error);
+    }
+}
+
+// Save equipped gear
+function saveEquippedGear() {
+    try {
+        localStorage.setItem('runrpg_equipped', JSON.stringify(equippedGear));
+    } catch (error) {
+        console.log('Could not save equipped gear:', error);
+    }
+}
+
+// Show character screen
+function showCharacterScreen() {
+    document.getElementById('lootSystem').classList.add('hidden');
+    document.getElementById('characterScreen').classList.remove('hidden');
+    loadEquippedGear();
+    updateCharacterStats();
+    updateEquipmentSlots();
+    updateCharacterInventory();
+}
+
+// Show loot system (back button)
+function showLootSystem() {
+    document.getElementById('characterScreen').classList.add('hidden');
+    document.getElementById('lootSystem').classList.remove('hidden');
+}
+
+// Calculate character stats from equipped gear
+function updateCharacterStats() {
+    let totalPower = 0;
+    let totalSpeed = 0;
+    let totalHealth = 0;
+    
+    // Sum up stats from all equipped items
+    Object.values(equippedGear).forEach(item => {
+        if (item) {
+            totalPower += item.stats.strength || 0;
+            totalSpeed += item.stats.dexterity || 0;
+            totalHealth += item.stats.vitality || 0;
+        }
+    });
+    
+    document.getElementById('totalPower').textContent = totalPower;
+    document.getElementById('totalSpeed').textContent = totalSpeed;
+    document.getElementById('totalHealth').textContent = totalHealth;
+    document.getElementById('bossScore').textContent = totalPower + totalSpeed + totalHealth;
+}
+
+// Update equipment slot displays
+function updateEquipmentSlots() {
+    for (const [slot, item] of Object.entries(equippedGear)) {
+        const slotElement = document.getElementById(`slot-${slot}`);
+        if (item) {
+            slotElement.innerHTML = `
+                <div class="equipped-item ${item.rarity}">
+                    <div class="item-icon">${item.icon}</div>
+                    <div class="item-name rarity-color-${item.rarity}">${item.name}</div>
+                    <button class="unequip-btn" onclick="unequipItem('${slot}')">✕</button>
+                </div>
+            `;
+        } else {
+            slotElement.innerHTML = '<span class="empty-slot">Empty</span>';
+        }
+    }
+}
+
+// Filter inventory
+let currentFilter = 'all';
+function filterInventory(type) {
+    currentFilter = type;
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    updateCharacterInventory();
+}
+
+// Get item category for filtering
+function getItemCategory(type) {
+    if (['weapon'].includes(type)) return 'weapon';
+    if (['helmet', 'chest', 'gloves', 'boots'].includes(type)) return 'armor';
+    if (['ring', 'neck', 'belt'].includes(type)) return 'accessory';
+    return 'other';
+}
+
+// Update character inventory display
+function updateCharacterInventory() {
+    const inventoryDiv = document.getElementById('characterInventory');
+    
+    // Filter items based on current filter
+    let itemsToShow = allLootCollected;
+    if (currentFilter !== 'all') {
+        itemsToShow = allLootCollected.filter(item => 
+            getItemCategory(item.type) === currentFilter
+        );
+    }
+    
+    // Check if item is equipped
+    const isItemEquipped = (item) => {
+        return Object.values(equippedGear).some(equipped => 
+            equipped && equipped.timestamp === item.timestamp
+        );
+    };
+    
+    inventoryDiv.innerHTML = itemsToShow.map(item => {
+        const equipped = isItemEquipped(item);
+        return `
+            <div class="inventory-item-card ${item.rarity} ${equipped ? 'equipped' : ''}" 
+                 onclick="${equipped ? '' : `equipItem(${JSON.stringify(item).replace(/"/g, '&quot;')})`}">
+                <div class="item-icon">${item.icon}</div>
+                <div class="item-name rarity-color-${item.rarity}">${item.name}</div>
+                <div class="item-stats" style="font-size: 11px;">
+                    ⚔️${item.stats.strength} 🏃${item.stats.dexterity} ❤️${item.stats.vitality}
+                </div>
+                ${equipped ? '<div class="item-equipped-label">EQUIPPED</div>' : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+// Equip item
+function equipItem(item) {
+    // Determine which slot this item goes in
+    let targetSlot = item.type;
+    
+    // Handle ring slots
+    if (item.type === 'ring') {
+        if (!equippedGear.ring1) {
+            targetSlot = 'ring1';
+        } else if (!equippedGear.ring2) {
+            targetSlot = 'ring2';
+        } else {
+            // Both ring slots full, replace ring1
+            targetSlot = 'ring1';
+        }
+    }
+    
+    // Handle belt as accessory/neck
+    if (item.type === 'belt') {
+        targetSlot = 'neck';
+    }
+    
+    // Equip the item
+    equippedGear[targetSlot] = item;
+    
+    // Save and update displays
+    saveEquippedGear();
+    updateCharacterStats();
+    updateEquipmentSlots();
+    updateCharacterInventory();
+}
+
+// Unequip item
+function unequipItem(slot) {
+    equippedGear[slot] = null;
+    saveEquippedGear();
+    updateCharacterStats();
+    updateEquipmentSlots();
+    updateCharacterInventory();
+}
+
+// Add character button to main screen - UPDATE YOUR HTML
+// Add this button in your lootSystem div, near the inventory button:
+/*
+<button onclick="showCharacterScreen()" style="padding: 8px 15px; background: rgba(255,215,0,0.2); border: 1px solid #ffd700; border-radius: 5px; color: #ffd700; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px;">⚔️ Character</button>
+*/
+
+// Initialize character system on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadEquippedGear();
+});
+
 
 console.log('✅ RunRPG JavaScript fully loaded!');
