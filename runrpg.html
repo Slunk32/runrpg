@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚔️ RunRPG</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div id="setupScreen">
+            <h1>⚔️ Welcome to RunRPG</h1>
+            <div class="intro-text">
+                <p>Transform your runs into epic adventures!</p>
+                <p>First, let's calibrate the system to your running style to ensure fair and motivating loot rewards.</p>
+            </div>
+            <div class="setup-section">
+                <div class="question">
+                    <h3>How often do you typically run?</h3>
+                    <div class="options">
+                        <div class="option" data-category="frequency" onclick="selectOption(this, 'frequency', 'beginner')">1-2 times per week<br><small>Building the habit</small></div>
+                        <div class="option" data-category="frequency" onclick="selectOption(this, 'frequency', 'casual')">3-4 times per week<br><small>Regular runner</small></div>
+                        <div class="option" data-category="frequency" onclick="selectOption(this, 'frequency', 'serious')">5+ times per week<br><small>Very committed</small></div>
+                    </div>
+                </div>
+                <div class="question">
+                    <h3>How far do you usually run?</h3>
+                    <div class="options">
+                        <div class="option" data-category="distance" onclick="selectOption(this, 'distance', 'short')">1-2 miles<br><small>Perfect start</small></div>
+                        <div class="option" data-category="distance" onclick="selectOption(this, 'distance', 'medium')">3-4 miles<br><small>Great distance</small></div>
+                        <div class="option" data-category="distance" onclick="selectOption(this, 'distance', 'long')">5-6 miles<br><small>Impressive endurance</small></div>
+                        <div class="option" data-category="distance" onclick="selectOption(this, 'distance', 'ultra')">7+ miles<br><small>Distance warrior</small></div>
+                    </div>
+                </div>
+                <div class="question">
+                    <h3>What's your typical pace per mile?</h3>
+                    <div class="options">
+                        <div class="option" data-category="pace" onclick="selectOption(this, 'pace', 'fast')">6-8 minutes<br><small>Speedy runner</small></div>
+                        <div class="option" data-category="pace" onclick="selectOption(this, 'pace', 'moderate')">8-10 minutes<br><small>Strong pace</small></div>
+                        <div class="option" data-category="pace" onclick="selectOption(this, 'pace', 'comfortable')">10-12 minutes<br><small>Steady runner</small></div>
+                        <div class="option" data-category="pace" onclick="selectOption(this, 'pace', 'easy')">12+ minutes<br><small>Consistent mover</small></div>
+                    </div>
+                </div>
+                <div class="question">
+                    <h3>How would you describe your typical routes?</h3>
+                    <div class="options">
+                        <div class="option" data-category="terrain" onclick="selectOption(this, 'terrain', 'flat')">Mostly flat<br><small>Smart training</small></div>
+                        <div class="option" data-category="terrain" onclick="selectOption(this, 'terrain', 'rolling')">Some hills<br><small>Balanced challenge</small></div>
+                        <div class="option" data-category="terrain" onclick="selectOption(this, 'terrain', 'hilly')">Very hilly<br><small>Hill crusher</small></div>
+                    </div>
+                </div>
+                <button class="continue-btn" id="continueBtn" onclick="completeSetup()" disabled>🎯 Start Your Adventure</button>
+            </div>
+        </div>
+
+        <div id="lootSystem" class="hidden">
+            <h1>⚔️ RunRPG Loot System</h1>
+            <div class="input-section">
+                <h2 style="margin-bottom: 20px;">Enter Your Run Data</h2>
+                <div style="text-align: right; margin-bottom: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+                    <button onclick="showInventory()" style="padding: 8px 15px; background: rgba(255,215,0,0.2); border: 1px solid #ffd700; border-radius: 5px; color: #ffd700; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px;">📦 View Inventory (<span id="inventoryCount">0</span>)</button>
+                    <button onclick="resetAllData()" style="padding: 8px 15px; background: rgba(239,68,68,0.2); border: 1px solid #EF4444; border-radius: 5px; color: #EF4444; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px;">🔄 Reset Data</button>
+                </div>
+                <div class="input-group">
+                    <div class="form-field">
+                        <label for="distance">Distance (miles)</label>
+                        <input type="number" id="distance" step="0.1" placeholder="3.2">
+                    </div>
+                    <div class="form-field">
+                        <label for="time">Time (minutes)</label>
+                        <input type="number" id="time" step="0.1" placeholder="28.5">
+                    </div>
+                    <div class="form-field">
+                        <label for="elevation">Elevation Gain (feet)</label>
+                        <input type="number" id="elevation" placeholder="150">
+                    </div>
+                </div>
+                <button class="generate-btn" onclick="generateLoot()">🗝️ Generate Loot Chest</button>
+            </div>
+            <div class="results-section" id="results" style="display: none;">
+                <div class="performance-summary" id="summary"></div>
+                <div class="chest-container">
+                    <div class="chest" id="chest" onclick="openChest()"></div>
+                    <p>Click the treasure chest to claim your loot!</p>
+                </div>
+                <div class="loot-items" id="lootItems"></div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
