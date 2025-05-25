@@ -64,18 +64,6 @@ const gearTypes = {
     boots: { 
         icon: '🥾', 
         names: ['Worn Sandals', 'Iron-Shod Boots', 'Boots of Swiftness', 'Treads of the Immortal', 'Steps of Eternity'] 
-    },
-    ring: { 
-        icon: '💍', 
-        names: ['Tarnished Band', 'Ring of Binding', 'Sorcerer\'s Loop', 'Band of the Archon', 'Circle of Reality'] 
-    },
-    neck: { 
-        icon: '📿', 
-        names: ['Cracked Trinket', 'Pendant of Souls', 'Amulet of the Magi', 'Relic of Creation', 'Heart of the Universe'] 
-    },
-    belt: { 
-        icon: '🎀', 
-        names: ['Frayed Rope', 'Leather Belt', 'Enchanted Sash', 'Girdle of Power', 'Cord of Divinity'] 
     }
 };
 
@@ -161,20 +149,20 @@ function calculatePace(distance, timeMinutes) {
 }
 
 function calculatePerformanceScore(distance, time, elevation) {
-    let score = 65; // Base score
+    let score = 65; // Base score (baseline performance)
     
-    // Distance factor
+    // Distance factor (more weight)
     const distanceRatio = distance / userBaseline.distance;
-    score += (distanceRatio - 1) * 25;
+    score += (distanceRatio - 1) * 30; // Increased from 25
     
     // Pace factor (better pace = higher score)
     const actualPace = calculatePace(distance, time);
     const paceRatio = userBaseline.pace / actualPace; // Inverted so faster = higher
-    score += (paceRatio - 1) * 25;
+    score += (paceRatio - 1) * 30; // Increased from 25
     
-    // Elevation factor
+    // Elevation factor (less weight)
     const elevationRatio = elevation / userBaseline.elevation;
-    score += (elevationRatio - 1) * 15;
+    score += (elevationRatio - 1) * 10; // Decreased from 15
     
     // Clamp between 0 and 100
     return Math.max(0, Math.min(100, score));
@@ -190,16 +178,18 @@ function calculateLootChances(performanceScore) {
         mythic: 1
     };
     
-    // Performance multiplier: -0.5 (terrible) to +1.5 (amazing)
-    const performanceMultiplier = (performanceScore - 50) / 50;
+    // Performance multiplier: -1 (terrible) to +1 (amazing)
+    // 65 is baseline, so we center around that
+    const performanceMultiplier = (performanceScore - 65) / 35;
     
     // Calculate modified weights based on performance
+    // For baseline performance (65), multiplier is 0, so no changes
     const modifiedWeights = {
-        common: Math.max(20, baseWeights.common - (performanceMultiplier * 20)),
-        uncommon: Math.max(15, baseWeights.uncommon + (performanceMultiplier * 10)),
-        rare: Math.max(5, baseWeights.rare + (performanceMultiplier * 15)),
-        legendary: Math.max(2, baseWeights.legendary + (performanceMultiplier * 8)),
-        mythic: Math.max(0.5, baseWeights.mythic + (performanceMultiplier * 4))
+        common: Math.max(10, baseWeights.common - (performanceMultiplier * 30)), // Common goes DOWN as performance improves
+        uncommon: Math.max(5, baseWeights.uncommon + (performanceMultiplier * 15)),
+        rare: Math.max(1, baseWeights.rare + (performanceMultiplier * 10)),
+        legendary: Math.max(0.5, baseWeights.legendary + (performanceMultiplier * 4)),
+        mythic: Math.max(0.1, baseWeights.mythic + (performanceMultiplier * 2))
     };
     
     // Calculate total weight for percentage calculation
@@ -271,13 +261,8 @@ function generateRandomLoot(performanceScore) {
         const rarityIndex = rarities.indexOf(rarity);
         const itemName = gear.names[Math.min(rarityIndex, gear.names.length - 1)];
         
-        // Generate stats based on rarity
-        const baseStats = (rarityIndex + 1) * 5;
-        const stats = {
-            strength: baseStats + Math.floor(Math.random() * 10),
-            dexterity: baseStats + Math.floor(Math.random() * 10),
-            vitality: baseStats + Math.floor(Math.random() * 10)
-        };
+        // Get fixed stats for this specific item
+        const stats = generateItemStats(randomGearType, itemName);
         
         loot.push({
             type: randomGearType,
@@ -290,6 +275,50 @@ function generateRandomLoot(performanceScore) {
     }
     
     return loot;
+}
+
+// Define fixed stats for each item
+const itemStatDatabase = {
+    weapon: {
+        'Chipped Dagger': { strength: 2, defense: 0, dexterity: 1, vitality: 0 },
+        'Steel Longsword': { strength: 5, defense: 0, dexterity: 2, vitality: 0 },
+        'Flamberge of Power': { strength: 8, defense: 0, dexterity: 3, vitality: 0 },
+        'Blade of Legends': { strength: 12, defense: 0, dexterity: 5, vitality: 0 },
+        'Godslayer': { strength: 18, defense: 0, dexterity: 8, vitality: 0 }
+    },
+    helmet: {
+        'Cracked Skull Cap': { strength: 0, defense: 2, dexterity: 0, vitality: 1 },
+        'Iron Coif': { strength: 0, defense: 4, dexterity: 0, vitality: 3 },
+        'Crown of Storms': { strength: 0, defense: 7, dexterity: 0, vitality: 5 },
+        'Helm of the Eternal': { strength: 0, defense: 10, dexterity: 0, vitality: 8 },
+        'Diadem of Gods': { strength: 0, defense: 15, dexterity: 0, vitality: 12 }
+    },
+    chest: {
+        'Torn Leather': { strength: 0, defense: 3, dexterity: 0, vitality: 2 },
+        'Studded Vest': { strength: 0, defense: 6, dexterity: 0, vitality: 4 },
+        'Mithril Chainmail': { strength: 0, defense: 9, dexterity: 0, vitality: 7 },
+        'Armor of the Void': { strength: 0, defense: 13, dexterity: 0, vitality: 10 },
+        'Celestial Plate': { strength: 0, defense: 20, dexterity: 0, vitality: 15 }
+    },
+    gloves: {
+        'Ragged Gloves': { strength: 1, defense: 0, dexterity: 2, vitality: 0 },
+        'Leather Gauntlets': { strength: 2, defense: 0, dexterity: 4, vitality: 0 },
+        'Enchanted Handguards': { strength: 4, defense: 0, dexterity: 6, vitality: 0 },
+        'Gloves of the Divine': { strength: 6, defense: 0, dexterity: 9, vitality: 0 },
+        'Fists of Creation': { strength: 9, defense: 0, dexterity: 14, vitality: 0 }
+    },
+    boots: {
+        'Worn Sandals': { strength: 0, defense: 1, dexterity: 3, vitality: 0 },
+        'Iron-Shod Boots': { strength: 0, defense: 2, dexterity: 5, vitality: 0 },
+        'Boots of Swiftness': { strength: 0, defense: 3, dexterity: 8, vitality: 0 },
+        'Treads of the Immortal': { strength: 0, defense: 5, dexterity: 12, vitality: 0 },
+        'Steps of Eternity': { strength: 0, defense: 8, dexterity: 18, vitality: 0 }
+    }
+};
+
+function generateItemStats(itemType, itemName) {
+    // Get the fixed stats for this specific item
+    return itemStatDatabase[itemType][itemName] || { strength: 0, defense: 0, dexterity: 0, vitality: 0 };
 }
 
 // Main loot generation function
@@ -335,26 +364,31 @@ function displayRunSummary(distance, time, pace, elevation, performanceScore, lo
         mythic: Math.round(lootChances.changes.mythic)
     };
     
-    const hasSignificantChanges = Object.values(roundedChanges).some(change => Math.abs(change) >= 1);
-    const isPositiveImpact = Object.values(roundedChanges).some(change => change >= 1);
-    const isNegativeImpact = Object.values(roundedChanges).some(change => change <= -1);
-    
+    // Fix the performance text logic based on score
     let performanceColor = '#e0e0e0';
     let performanceText = 'Baseline Performance';
     
-    if (hasSignificantChanges) {
-        if (isPositiveImpact && !isNegativeImpact) {
-            performanceColor = '#10B981';
-            performanceText = 'Excellent Performance!';
-        } else if (isNegativeImpact && !isPositiveImpact) {
-            performanceColor = '#EF4444';
-            performanceText = 'Below Baseline';
-        } else if (isPositiveImpact && isNegativeImpact) {
-            performanceColor = '#F59E0B';
-            performanceText = 'Mixed Performance';
-        }
+    if (performanceScore >= 85) {
+        performanceColor = '#EF4444'; // Mythic red
+        performanceText = 'Legendary Performance!';
+    } else if (performanceScore >= 75) {
+        performanceColor = '#F59E0B'; // Legendary orange
+        performanceText = 'Excellent Performance!';
+    } else if (performanceScore >= 65) {
+        performanceColor = '#10B981'; // Green
+        performanceText = 'Good Performance';
+    } else if (performanceScore >= 55) {
+        performanceColor = '#e0e0e0'; // Neutral
+        performanceText = 'Baseline Performance';
+    } else if (performanceScore >= 45) {
+        performanceColor = '#9CA3AF'; // Gray
+        performanceText = 'Below Average';
+    } else {
+        performanceColor = '#EF4444'; // Red
+        performanceText = 'Poor Performance';
     }
 
+    // Helper function to get change class
     const getChangeClass = (change) => {
         if (change > 0) return 'change-positive';
         if (change < 0) return 'change-negative';
@@ -434,14 +468,19 @@ function displayLoot() {
         lootElement.className = `loot-item ${item.rarity}`;
         lootElement.style.animationDelay = `${index * 0.1}s`;
         
+        // Build stats display based on which stats the item has
+        let statsDisplay = [];
+        if (item.stats.strength > 0) statsDisplay.push(`⚔️ STR: ${item.stats.strength}`);
+        if (item.stats.defense > 0) statsDisplay.push(`🛡️ DEF: ${item.stats.defense}`);
+        if (item.stats.dexterity > 0) statsDisplay.push(`🏃 DEX: ${item.stats.dexterity}`);
+        if (item.stats.vitality > 0) statsDisplay.push(`❤️ VIT: ${item.stats.vitality}`);
+        
         lootElement.innerHTML = `
             <div class="item-icon">${item.icon}</div>
             <div class="item-name rarity-color-${item.rarity}">${item.name}</div>
             <div class="item-rarity rarity-color-${item.rarity}">${item.rarity}</div>
             <div class="item-stats">
-                <div>⚔️ STR: ${item.stats.strength}</div>
-                <div>🏃 DEX: ${item.stats.dexterity}</div>
-                <div>❤️ VIT: ${item.stats.vitality}</div>
+                ${statsDisplay.map(stat => `<div>${stat}</div>`).join('')}
             </div>
         `;
         
@@ -463,88 +502,19 @@ function saveBatchLoot() {
     updateInventoryCount();
 }
 
+let currentSort = 'newest';
+
+function sortInventory(sortType) {
+    currentSort = sortType;
+    updateCharacterInventory();
+}
+
 function updateInventoryCount() {
     const count = allLootCollected.length;
     const countElement = document.getElementById('inventoryCount');
     if (countElement) {
         countElement.textContent = count;
     }
-}
-
-function showInventory() {
-    if (allLootCollected.length === 0) {
-        alert('Your inventory is empty! Complete some runs to collect loot.');
-        return;
-    }
-    
-    // Create inventory modal
-    const modal = document.createElement('div');
-    modal.className = 'inventory-modal modal';
-    
-    const modalContent = document.createElement('div');
-    modalContent.className = 'inventory-modal-content';
-    
-    // Group items by rarity
-    const itemsByRarity = {};
-    rarities.forEach(rarity => itemsByRarity[rarity] = []);
-    allLootCollected.forEach(item => itemsByRarity[item.rarity].push(item));
-    
-    let inventoryHtml = `
-        <div class="inventory-header">
-            <h2>📦 Inventory (${allLootCollected.length} items)</h2>
-            <button onclick="this.closest('.modal').remove()" class="inventory-close-btn">✕ Close</button>
-        </div>
-    `;
-    
-    // Stats summary
-    const rarityCount = {};
-    rarities.forEach(rarity => rarityCount[rarity] = itemsByRarity[rarity].length);
-    
-    inventoryHtml += `
-        <div class="inventory-stats-grid">
-            ${rarities.map(rarity => `
-                <div class="inventory-stat-box ${rarity}">
-                    <div class="inventory-stat-label ${rarity}">${rarity}</div>
-                    <div class="inventory-stat-count">${rarityCount[rarity]}</div>
-                </div>
-            `).join('')}
-        </div>
-    `;
-    
-    // Items by rarity
-    rarities.reverse().forEach(rarity => {
-        if (itemsByRarity[rarity].length > 0) {
-            inventoryHtml += `
-                <div class="inventory-rarity-section">
-                    <h3 class="${rarity}">${rarity} (${itemsByRarity[rarity].length})</h3>
-                    <div class="inventory-items-grid">
-                        ${itemsByRarity[rarity].map(item => `
-                            <div class="inventory-item ${rarity}">
-                                <div class="inventory-item-icon">${item.icon}</div>
-                                <div class="inventory-item-name ${rarity}">${item.name}</div>
-                                <div class="inventory-item-stats">
-                                    ⚔️ ${item.stats.strength} | 🏃 ${item.stats.dexterity} | ❤️ ${item.stats.vitality}
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-    });
-    rarities.reverse(); // Restore original order
-    
-    modalContent.innerHTML = inventoryHtml;
-    modal.appendChild(modalContent);
-    
-    // Close on click outside
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.remove();
-        }
-    });
-    
-    document.body.appendChild(modal);
 }
 
 // Reset data function (for testing/reset)
@@ -567,14 +537,11 @@ function resetAllData() {
                 weapon: null,
                 chest: null,
                 gloves: null,
-                boots: null,
-                ring1: null,
-                ring2: null,
-                neck: null
+                boots: null
             };
             
             // Force update all equipment slots to show empty
-            const slots = ['helmet', 'weapon', 'chest', 'gloves', 'boots', 'ring1', 'ring2', 'neck'];
+            const slots = ['helmet', 'weapon', 'chest', 'gloves', 'boots'];
             slots.forEach(slot => {
                 const slotElement = document.getElementById(`slot-${slot}`);
                 if (slotElement) {
@@ -582,12 +549,13 @@ function resetAllData() {
                 }
             });
             
-            // Reset character stats to 0
-            const statElements = ['totalPower', 'totalSpeed', 'totalHealth', 'bossScore'];
-            statElements.forEach(stat => {
+            // Reset character stats to base values
+            const statElements = ['totalStrength', 'totalDefense', 'totalDexterity', 'totalVitality'];
+            const baseValues = [10, 8, 8, 10]; // Base stats
+            statElements.forEach((stat, index) => {
                 const element = document.getElementById(stat);
                 if (element) {
-                    element.textContent = '0';
+                    element.textContent = baseValues[index];
                 }
             });
             
@@ -595,6 +563,7 @@ function resetAllData() {
             document.getElementById('setupScreen').classList.remove('hidden');
             document.getElementById('lootSystem').classList.add('hidden');
             document.getElementById('characterScreen').classList.add('hidden');
+            document.getElementById('combatScreen').classList.add('hidden');
             
             // Clear any selected options
             document.querySelectorAll('.option.selected').forEach(option => {
@@ -644,10 +613,7 @@ let equippedGear = {
     weapon: null,
     chest: null,
     gloves: null,
-    boots: null,
-    ring1: null,
-    ring2: null,
-    neck: null
+    boots: null
 };
 
 // Load equipped gear
@@ -689,41 +655,59 @@ function showLootSystem() {
 
 // Calculate character stats from equipped gear
 function updateCharacterStats() {
-    let totalPower = 0;
-    let totalSpeed = 0;
-    let totalHealth = 0;
+    let totalStrength = 0;
+    let totalDefense = 0;
+    let totalDexterity = 0;
+    let totalVitality = 0;
     
-    // Sum up stats from all equipped items
+    // Base stats
+    totalStrength += 10;
+    totalDefense += 8;
+    totalDexterity += 8;
+    totalVitality += 10;
+    
+    // Add stats from equipped items
     Object.values(equippedGear).forEach(item => {
         if (item) {
-            totalPower += item.stats.strength || 0;
-            totalSpeed += item.stats.dexterity || 0;
-            totalHealth += item.stats.vitality || 0;
+            totalStrength += item.stats.strength || 0;
+            totalDefense += item.stats.defense || 0;
+            totalDexterity += item.stats.dexterity || 0;
+            totalVitality += item.stats.vitality || 0;
         }
     });
     
-    document.getElementById('totalPower').textContent = totalPower;
-    document.getElementById('totalSpeed').textContent = totalSpeed;
-    document.getElementById('totalHealth').textContent = totalHealth;
-    document.getElementById('bossScore').textContent = totalPower + totalSpeed + totalHealth;
+    document.getElementById('totalStrength').textContent = totalStrength;
+    document.getElementById('totalDefense').textContent = totalDefense;
+    document.getElementById('totalDexterity').textContent = totalDexterity;
+    document.getElementById('totalVitality').textContent = totalVitality;
 }
 
 // Update equipment slot displays
 function updateEquipmentSlots() {
-    for (const [slot, item] of Object.entries(equippedGear)) {
+    const slots = ['helmet', 'weapon', 'chest', 'gloves', 'boots'];
+    slots.forEach(slot => {
         const slotElement = document.getElementById(`slot-${slot}`);
+        const item = equippedGear[slot];
         if (item) {
+            // Build stats display
+            let statsDisplay = [];
+            if (item.stats.strength > 0) statsDisplay.push(`⚔️${item.stats.strength}`);
+            if (item.stats.defense > 0) statsDisplay.push(`🛡️${item.stats.defense}`);
+            if (item.stats.dexterity > 0) statsDisplay.push(`🏃${item.stats.dexterity}`);
+            if (item.stats.vitality > 0) statsDisplay.push(`❤️${item.stats.vitality}`);
+            
             slotElement.innerHTML = `
                 <div class="equipped-item ${item.rarity}">
                     <div class="item-icon">${item.icon}</div>
                     <div class="item-name rarity-color-${item.rarity}">${item.name}</div>
+                    <div class="item-stats">${statsDisplay.join(' ')}</div>
                     <button class="unequip-btn" onclick="unequipItem('${slot}')">✕</button>
                 </div>
             `;
         } else {
             slotElement.innerHTML = '<span class="empty-slot">Empty</span>';
         }
-    }
+    });
 }
 
 // Filter inventory
@@ -739,20 +723,40 @@ function filterInventory(type) {
 function getItemCategory(type) {
     if (['weapon'].includes(type)) return 'weapon';
     if (['helmet', 'chest', 'gloves', 'boots'].includes(type)) return 'armor';
-    if (['ring', 'neck', 'belt'].includes(type)) return 'accessory';
     return 'other';
 }
 
 // Update character inventory display
+// Update the updateCharacterInventory function to support sorting
 function updateCharacterInventory() {
     const inventoryDiv = document.getElementById('characterInventory');
     
     // Filter items based on current filter
-    let itemsToShow = allLootCollected;
+    let itemsToShow = [...allLootCollected]; // Make a copy for sorting
     if (currentFilter !== 'all') {
-        itemsToShow = allLootCollected.filter(item => 
+        itemsToShow = itemsToShow.filter(item => 
             getItemCategory(item.type) === currentFilter
         );
+    }
+    
+    // Sort items
+    switch(currentSort) {
+        case 'newest':
+            itemsToShow.sort((a, b) => b.timestamp - a.timestamp);
+            break;
+        case 'rarity':
+            const rarityOrder = { mythic: 0, legendary: 1, rare: 2, uncommon: 3, common: 4 };
+            itemsToShow.sort((a, b) => rarityOrder[a.rarity] - rarityOrder[b.rarity]);
+            break;
+        case 'type':
+            itemsToShow.sort((a, b) => a.type.localeCompare(b.type));
+            break;
+    }
+    
+    // Update inventory count badge
+    const badge = document.getElementById('inventoryCountBadge');
+    if (badge) {
+        badge.textContent = allLootCollected.length;
     }
     
     // Check if item is equipped
@@ -764,44 +768,36 @@ function updateCharacterInventory() {
     
     inventoryDiv.innerHTML = itemsToShow.map(item => {
         const equipped = isItemEquipped(item);
+        
+        // Build compact stats display
+        let statsDisplay = [];
+        if (item.stats.strength > 0) statsDisplay.push(`⚔️${item.stats.strength}`);
+        if (item.stats.defense > 0) statsDisplay.push(`🛡️${item.stats.defense}`);
+        if (item.stats.dexterity > 0) statsDisplay.push(`🏃${item.stats.dexterity}`);
+        if (item.stats.vitality > 0) statsDisplay.push(`❤️${item.stats.vitality}`);
+        
         return `
             <div class="inventory-item-card ${item.rarity} ${equipped ? 'equipped' : ''}" 
                  onclick="${equipped ? '' : `equipItem(${JSON.stringify(item).replace(/"/g, '&quot;')})`}">
                 <div class="item-icon">${item.icon}</div>
                 <div class="item-name rarity-color-${item.rarity}">${item.name}</div>
-                <div class="item-stats" style="font-size: 11px;">
-                    ⚔️${item.stats.strength} 🏃${item.stats.dexterity} ❤️${item.stats.vitality}
+                <div class="item-stats">
+                    ${statsDisplay.join(' ')}
                 </div>
                 ${equipped ? '<div class="item-equipped-label">EQUIPPED</div>' : ''}
             </div>
         `;
     }).join('');
+    
+    if (itemsToShow.length === 0) {
+        inventoryDiv.innerHTML = '<div style="text-align: center; color: #666; padding: 40px;">No items found</div>';
+    }
 }
 
 // Equip item
 function equipItem(item) {
-    // Determine which slot this item goes in
-    let targetSlot = item.type;
-    
-    // Handle ring slots
-    if (item.type === 'ring') {
-        if (!equippedGear.ring1) {
-            targetSlot = 'ring1';
-        } else if (!equippedGear.ring2) {
-            targetSlot = 'ring2';
-        } else {
-            // Both ring slots full, replace ring1
-            targetSlot = 'ring1';
-        }
-    }
-    
-    // Handle belt as accessory/neck
-    if (item.type === 'belt') {
-        targetSlot = 'neck';
-    }
-    
-    // Equip the item
-    equippedGear[targetSlot] = item;
+    // Equip the item in its slot
+    equippedGear[item.type] = item;
     
     // Save and update displays
     saveEquippedGear();
@@ -819,11 +815,249 @@ function unequipItem(slot) {
     updateCharacterInventory();
 }
 
-// Add character button to main screen - UPDATE YOUR HTML
-// Add this button in your lootSystem div, near the inventory button:
-/*
-<button onclick="showCharacterScreen()" style="padding: 8px 15px; background: rgba(255,215,0,0.2); border: 1px solid #ffd700; border-radius: 5px; color: #ffd700; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px;">⚔️ Character</button>
-*/
+// Combat System Variables
+let combatInProgress = false;
+let playerCombatStats = null;
+let bossCombatStats = null;
+let combatLog = [];
+let turnCount = 0;
+
+// Boss definitions based on dungeon type
+const bosses = {
+    quick: {
+        name: "Shadow Imp",
+        sprite: "👺",
+        stats: { strength: 15, defense: 10, dexterity: 10, vitality: 15 }
+    },
+    journey: {
+        name: "Corrupted Knight",
+        sprite: "🗿",
+        stats: { strength: 20, defense: 15, dexterity: 15, vitality: 20 }
+    },
+    epic: {
+        name: "Ancient Dragon",
+        sprite: "🐲",
+        stats: { strength: 30, defense: 25, dexterity: 20, vitality: 30 }
+    }
+};
+
+// Calculate player stats from equipped gear (limited to 5 slots for now)
+function calculateCombatStats() {
+    const stats = {
+        strength: 10,  // Base stats
+        defense: 8,
+        dexterity: 8,
+        vitality: 10
+    };
+    
+    let debugInfo = "Base Stats: STR:10, DEF:8, DEX:8, VIT:10\n";
+    
+    // Add stats from equipped items directly
+    Object.entries(equippedGear).forEach(([slot, item]) => {
+        if (item) {
+            stats.strength += item.stats.strength || 0;
+            stats.defense += item.stats.defense || 0;
+            stats.dexterity += item.stats.dexterity || 0;
+            stats.vitality += item.stats.vitality || 0;
+            
+            debugInfo += `${item.name} (${slot}): +${item.stats.strength || 0} STR, +${item.stats.defense || 0} DEF, +${item.stats.dexterity || 0} DEX, +${item.stats.vitality || 0} VIT\n`;
+        }
+    });
+    
+    // Update debug display
+    const debugElement = document.getElementById('playerGearDebug');
+    if (debugElement) {
+        debugElement.innerHTML = `<pre>${debugInfo}</pre>`;
+    }
+    
+    return stats;
+}
+
+// Show combat screen
+function showCombatScreen(dungeonType = 'quick') {
+    document.getElementById('characterScreen').classList.add('hidden');
+    document.getElementById('lootSystem').classList.add('hidden');
+    document.getElementById('combatScreen').classList.remove('hidden');
+    
+    // Setup player stats
+    playerCombatStats = calculateCombatStats();
+    playerCombatStats.currentHP = playerCombatStats.vitality * 10;
+    playerCombatStats.maxHP = playerCombatStats.currentHP;
+    
+    // Setup boss stats
+    const boss = bosses[dungeonType];
+    bossCombatStats = { ...boss.stats };
+    bossCombatStats.name = boss.name;
+    bossCombatStats.sprite = boss.sprite;
+    bossCombatStats.currentHP = bossCombatStats.vitality * 10;
+    bossCombatStats.maxHP = bossCombatStats.currentHP;
+    
+    // Update UI
+    updateCombatUI();
+    document.getElementById('bossName').textContent = boss.name;
+    document.querySelector('.boss-side .combatant-sprite').textContent = boss.sprite;
+    
+    // Clear combat log
+    combatLog = [];
+    document.getElementById('combatLog').innerHTML = '';
+    
+    // Reset buttons
+    document.getElementById('startCombatBtn').disabled = false;
+    document.getElementById('combatBackBtn').classList.add('hidden');
+}
+
+// Update combat UI
+function updateCombatUI() {
+    // Player stats
+    document.getElementById('playerStr').textContent = playerCombatStats.strength;
+    document.getElementById('playerDef').textContent = playerCombatStats.defense;
+    document.getElementById('playerDex').textContent = playerCombatStats.dexterity;
+    document.getElementById('playerVit').textContent = playerCombatStats.vitality;
+    document.getElementById('playerHealthText').textContent = `${Math.max(0, playerCombatStats.currentHP)}/${playerCombatStats.maxHP}`;
+    document.getElementById('playerHealthBar').style.width = `${(playerCombatStats.currentHP / playerCombatStats.maxHP) * 100}%`;
+    
+    // Boss stats
+    document.getElementById('bossStr').textContent = bossCombatStats.strength;
+    document.getElementById('bossDef').textContent = bossCombatStats.defense;
+    document.getElementById('bossDex').textContent = bossCombatStats.dexterity;
+    document.getElementById('bossVit').textContent = bossCombatStats.vitality;
+    document.getElementById('bossHealthText').textContent = `${Math.max(0, bossCombatStats.currentHP)}/${bossCombatStats.maxHP}`;
+    document.getElementById('bossHealthBar').style.width = `${(bossCombatStats.currentHP / bossCombatStats.maxHP) * 100}%`;
+}
+
+// Add log entry
+function addCombatLogEntry(text, type = '') {
+    const entry = document.createElement('div');
+    entry.className = `combat-log-entry ${type}`;
+    entry.textContent = text;
+    const logContainer = document.getElementById('combatLog');
+    logContainer.appendChild(entry);
+    logContainer.scrollTop = logContainer.scrollHeight;
+}
+
+// Calculate damage
+// Calculate damage with debug info
+function calculateDamage(attacker, defender, attackerName, defenderName) {
+    let debugInfo = `${attackerName} attacks ${defenderName}:\n`;
+    
+    // Base damage with some randomness
+    const damageMultiplier = 0.8 + Math.random() * 0.4; // 0.8 to 1.2
+    const baseDamage = Math.floor(attacker.strength * damageMultiplier);
+    debugInfo += `Base damage: ${attacker.strength} × ${damageMultiplier.toFixed(2)} = ${baseDamage}\n`;
+    
+    // Apply defense
+    const defenseReduction = Math.floor(defender.defense * 0.5);
+    const damageAfterDefense = Math.max(1, baseDamage - defenseReduction);
+    debugInfo += `Defense reduction: ${baseDamage} - ${defenseReduction} = ${damageAfterDefense}\n`;
+    
+    // Check for evasion
+    const evasionChance = Math.max(0.05, Math.min(0.30, 0.05 + (defender.dexterity - attacker.dexterity) * 0.01));
+    const evasionRoll = Math.random();
+    debugInfo += `Evasion chance: ${(evasionChance * 100).toFixed(1)}% (rolled ${(evasionRoll * 100).toFixed(1)}%)\n`;
+    
+    if (evasionRoll < evasionChance) {
+        debugInfo += `EVADED!\n`;
+        updateDebugDisplay(debugInfo);
+        return { damage: 0, evaded: true, critical: false };
+    }
+    
+    // Check for critical hit
+    const critChance = Math.max(0.05, Math.min(0.30, 0.05 + (attacker.dexterity - defender.dexterity) * 0.01));
+    const critRoll = Math.random();
+    debugInfo += `Crit chance: ${(critChance * 100).toFixed(1)}% (rolled ${(critRoll * 100).toFixed(1)}%)\n`;
+    
+    const isCritical = critRoll < critChance;
+    const finalDamage = isCritical ? damageAfterDefense * 2 : damageAfterDefense;
+    
+    if (isCritical) {
+        debugInfo += `CRITICAL HIT! Damage doubled: ${damageAfterDefense} × 2 = ${finalDamage}\n`;
+    } else {
+        debugInfo += `Final damage: ${finalDamage}\n`;
+    }
+    
+    updateDebugDisplay(debugInfo);
+    return { damage: finalDamage, evaded: false, critical: isCritical };
+}
+
+// Update debug display
+function updateDebugDisplay(info) {
+    const debugElement = document.getElementById('combatCalcDebug');
+    if (debugElement) {
+        debugElement.innerHTML = `<pre>${info}</pre>`;
+    }
+}
+
+// Execute one combat turn
+function executeCombatTurn(isPlayerTurn) {
+    turnCount++;
+    
+    const attacker = isPlayerTurn ? playerCombatStats : bossCombatStats;
+    const defender = isPlayerTurn ? bossCombatStats : playerCombatStats;
+    const attackerName = isPlayerTurn ? "Player" : bossCombatStats.name;
+    const defenderName = isPlayerTurn ? bossCombatStats.name : "Player";
+    
+    const result = calculateDamage(attacker, defender, attackerName, defenderName);
+    
+    let logText = `Turn ${turnCount}: ${attackerName} attacks. `;
+    let logType = isPlayerTurn ? 'player-turn' : 'boss-turn';
+    
+    if (result.evaded) {
+        logText += `Miss! ${defenderName} evaded.`;
+        logType += ' miss';
+    } else {
+        if (result.critical) {
+            logText += `Critical hit! `;
+            logType += ' critical';
+        }
+        logText += `${result.damage} damage dealt. `;
+        defender.currentHP -= result.damage;
+        logText += `${defenderName} HP: ${Math.max(0, defender.currentHP)}`;
+    }
+    
+    addCombatLogEntry(logText, logType);
+    updateCombatUI();
+    
+    // Check for victory
+    if (defender.currentHP <= 0) {
+        combatInProgress = false;
+        const winner = isPlayerTurn ? "Player" : bossCombatStats.name;
+        addCombatLogEntry(`\n${winner} wins!`, 'critical');
+        document.getElementById('startCombatBtn').disabled = true;
+        document.getElementById('combatBackBtn').classList.remove('hidden');
+        return false; // Combat ended
+    }
+    
+    return true; // Combat continues
+}
+
+// Start combat
+async function startCombat() {
+    if (combatInProgress) return;
+    
+    combatInProgress = true;
+    turnCount = 0;
+    document.getElementById('startCombatBtn').disabled = true;
+    
+    addCombatLogEntry("Combat begins!", 'critical');
+    
+    // Combat loop - continue until someone wins
+    let isPlayerTurn = true;
+    while (combatInProgress) {
+        await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay per turn (faster!)
+        
+        const continuesCombat = executeCombatTurn(isPlayerTurn);
+        
+        if (!continuesCombat) break;
+        
+        isPlayerTurn = !isPlayerTurn; // Alternate turns
+    }
+}
+
+// Return from combat
+function returnFromCombat() {
+    document.getElementById('combatScreen').classList.add('hidden');
+    document.getElementById('characterScreen').classList.remove('hidden');
+}
 
 // Initialize character system on page load
 document.addEventListener('DOMContentLoaded', function() {
