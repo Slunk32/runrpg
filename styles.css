@@ -1,3 +1,17 @@
+:root {
+    --primary-bg: #1a1a2e;
+    --secondary-bg: #0f0f23;
+    --border-color: #4a5568;
+    --accent-color: #e0e7ff;  /* Blue instead of yellow */
+    --text-primary: #e0e7ff;
+    --text-secondary: #a5b4fc;
+    --success-color: #34d399;
+    --danger-color: #f87171;
+    --rare-color: #e0e7ff;
+    --legendary-color: #a78bfa;
+    --mythic-color: #f472b6;
+}
+
 c* {
     margin: 0;
     padding: 0;
@@ -6,28 +20,28 @@ c* {
 
 body {
     font-family: 'Courier New', monospace;
-    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+    background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--primary-bg) 50%, #16213e 100%);
     min-height: 100vh;
-    color: #e0e0e0;
+    color: var(--text-primary);
     padding: 20px;
 }
 
 .container {
     max-width: 800px;
     margin: 0 auto;
-    background: rgba(0, 0, 0, 0.7);
-    border: 3px solid #ffd700;
+    background: rgba(15, 15, 35, 0.8);
+    border: 2px solid var(--border-color);
     border-radius: 10px;
     padding: 30px;
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    box-shadow: 0 0 20px rgba(96, 165, 250, 0.2);
 }
 
 h1 {
     text-align: center;
     margin-bottom: 30px;
     font-size: 2.5em;
-    color: #ffd700;
-    text-shadow: 2px 2px 0px #8b4513, 4px 4px 8px rgba(0, 0, 0, 0.8);
+    color: var(--accent-color);
+    text-shadow: 2px 2px 0px #1a1a2e, 4px 4px 8px rgba(0, 0, 0, 0.8);
     font-family: 'Courier New', monospace;
     letter-spacing: 2px;
 }
@@ -45,7 +59,7 @@ h1 {
 }
 
 .question h3 {
-    color: #ffd700;
+    color: #e0e7ff;
     margin-bottom: 15px;
     font-size: 1.2em;
 }
@@ -67,23 +81,23 @@ h1 {
 }
 
 .option:hover {
-    background: rgba(255, 215, 0, 0.2);
-    border-color: #ffd700;
+    background: rgba(96, 165, 250, 0.1);
+    border-color: #60a5fa;  /* Change from #ffd700 */
 }
 
 .option.selected {
-    background: rgba(255, 215, 0, 0.3);
-    border-color: #ffd700;
-    color: #ffd700;
+    background: rgba(96, 165, 250, 0.2);
+    border-color: #60a5fa;  /* Change from #ffd700 */
+    color: #e0e7ff;  /* Change from #ffd700 */
 }
 
 .continue-btn {
     width: 100%;
     padding: 15px;
-    background: linear-gradient(45deg, #8b4513, #daa520);
-    border: 2px solid #ffd700;
+    background: linear-gradient(45deg, #8b4513, #a5b4fc);
+    border: 2px solid #e0e7ff;
     border-radius: 8px;
-    color: #ffd700;
+    color: #e0e7ff;
     font-size: 18px;
     font-weight: bold;
     font-family: 'Courier New', monospace;
@@ -94,7 +108,7 @@ h1 {
 }
 
 .continue-btn:hover {
-    background: linear-gradient(45deg, #daa520, #ffd700);
+    background: linear-gradient(45deg, #a5b4fc, #e0e7ff);
     color: #000;
     text-shadow: none;
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
@@ -148,26 +162,15 @@ input {
     font-size: 16px;
 }
 
-.generate-btn {
-    width: 100%;
-    padding: 15px;
-    background: linear-gradient(45deg, #8b4513, #daa520);
-    border: 2px solid #ffd700;
-    border-radius: 8px;
-    color: #ffd700;
-    font-size: 18px;
-    font-weight: bold;
-    font-family: 'Courier New', monospace;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+.generate-btn, .continue-btn, .combat-btn {
+    background: linear-gradient(45deg, #4a5568, #e0e7ff);
+    border: 2px solid var(--accent-color);
+    color: var(--text-primary);
 }
 
-.generate-btn:hover {
-    background: linear-gradient(45deg, #daa520, #ffd700);
-    color: #000;
-    text-shadow: none;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+.generate-btn:hover, .continue-btn:hover, .combat-btn:hover {
+    background: linear-gradient(45deg, #e0e7ff, #818cf8);
+    box-shadow: 0 0 15px rgba(96, 165, 250, 0.5);
 }
 
 .results-section {
@@ -183,7 +186,7 @@ input {
     width: 80px;
     height: 60px;
     background: linear-gradient(to bottom, #8b4513 0%, #654321 50%, #4a2c17 100%);
-    border: 3px solid #daa520;
+    border: 3px solid #a5b4fc;
     border-radius: 10px 10px 5px 5px;
     position: relative;
     cursor: pointer;
@@ -200,7 +203,7 @@ input {
     right: -3px;
     height: 20px;
     background: linear-gradient(to bottom, #8b4513 0%, #654321 100%);
-    border: 3px solid #daa520;
+    border: 3px solid #a5b4fc;
     border-radius: 15px 15px 0 0;
     border-bottom: none;
 }
@@ -223,11 +226,11 @@ input {
 }
 
 .chest.opened {
-    background: linear-gradient(to bottom, #ffd700 0%, #daa520 50%, #b8860b 100%);
+    background: linear-gradient(to bottom, #e0e7ff 0%, #a5b4fc 50%, #b8860b 100%);
 }
 
 .chest.opened::before {
-    background: linear-gradient(to bottom, #ffd700 0%, #daa520 100%);
+    background: linear-gradient(to bottom, #e0e7ff 0%, #a5b4fc 100%);
 }
 
 .chest.opened::after {
@@ -325,15 +328,14 @@ input {
 
 .stat-box {
     background: rgba(0, 0, 0, 0.7);
-    border: 1px solid #ffd700;
+    border: 1px solid #e0e7ff;
     padding: 15px;
     border-radius: 5px;
 }
 
 .stat-value {
-    font-size: 24px;
+    color: #e0e7ff;  /* Light blue-white instead of bright blue */
     font-weight: bold;
-    color: #e0e0e0;
 }
 
 .stat-label {
@@ -416,7 +418,7 @@ input {
 
 .inventory-modal-content {
     background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
-    border: 3px solid #ffd700;
+    border: 3px solid #e0e7ff;
     border-radius: 10px;
     padding: 20px;
     max-width: 90%;
@@ -434,14 +436,14 @@ input {
 }
 
 .inventory-header h2 {
-    color: #ffd700;
+    color: #e0e7ff;
     margin: 0;
 }
 
 .inventory-close-btn {
     background: #8b4513;
-    border: 1px solid #ffd700;
-    color: #ffd700;
+    border: 1px solid #e0e7ff;
+    color: #e0e7ff;
     padding: 5px 10px;
     border-radius: 5px;
     cursor: pointer;
@@ -573,6 +575,7 @@ input {
     font-size: 20px;
     font-weight: bold;
     margin-bottom: 2px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .loot-chance-change {
@@ -607,19 +610,20 @@ input {
 }
 
 .stat-name {
-    color: #daa520;
+    color: #a5b4fc;
 }
 
 .stat-value {
-    color: #ffd700;
+    color: #e0e7ff;
     font-weight: bold;
-    font-size: 18px;
+    font-size: 22px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .boss-score {
     margin-top: 10px;
     padding-top: 15px;
-    border-top: 2px solid #ffd700;
+    border-top: 2px solid #e0e7ff;
 }
 
 .boss-score .stat-value {
@@ -661,32 +665,22 @@ input {
 }
 
 .equipment-slot {
-    background: rgba(0, 0, 0, 0.7);
-    border: 2px solid #8b4513;
+    background: rgba(15, 15, 35, 0.9);
+    border: 2px solid var(--border-color);
     border-radius: 8px;
     padding: 15px;
     text-align: center;
-    transition: all 0.3s;
+    transition: border-color 0.2s;
     width: 100%;
 }
 
-/* Make weapon and gloves slots taller */
-.equipment-left .equipment-slot,
-.equipment-right .equipment-slot {
-    height: 200px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
 .equipment-slot:hover {
-    border-color: #ffd700;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+    border-color: var(--accent-color);
+    /* Removed transform and box-shadow */
 }
 
 .slot-label {
-    color: #ffd700;
+    color: var(--text-secondary);
     font-size: 14px;
     margin-bottom: 10px;
     font-weight: bold;
@@ -699,12 +693,16 @@ input {
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px dashed #8b4513;
+    border: 2px dashed var(--border-color);
     border-radius: 5px;
     background: rgba(0, 0, 0, 0.3);
     position: relative;
     cursor: pointer;
     padding: 10px;
+}
+
+.slot-content:active {
+    background: rgba(96, 165, 250, 0.1);
 }
 
 /* Larger content area for weapon/gloves */
@@ -714,7 +712,7 @@ input {
 }
 
 .slot-content:hover {
-    border-color: #ffd700;
+    border-color: #e0e7ff;
     background: rgba(255, 215, 0, 0.05);
 }
 
@@ -776,7 +774,7 @@ input {
 .filter-btn {
     background: rgba(255, 215, 0, 0.2);
     border: 1px solid #8b4513;
-    color: #daa520;
+    color: #a5b4fc;
     padding: 5px 15px;
     border-radius: 5px;
     cursor: pointer;
@@ -789,8 +787,8 @@ input {
 
 .filter-btn.active {
     background: rgba(255, 215, 0, 0.4);
-    border-color: #ffd700;
-    color: #ffd700;
+    border-color: #e0e7ff;
+    color: #e0e7ff;
 }
 
 /* Character Inventory */
@@ -803,18 +801,18 @@ input {
 }
 
 .inventory-item-card {
-    background: rgba(0, 0, 0, 0.7);
-    border: 1px solid #8b4513;
-    border-radius: 5px;
-    padding: 10px;
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.2s;
+    background: rgba(15, 15, 35, 0.9);
+    border: 2px solid var(--border-color);
+}
+
+.inventory-item-card:active {
+    background: rgba(96, 165, 250, 0.1);
+    transform: scale(0.98);
 }
 
 .inventory-item-card:hover {
-    border-color: #ffd700;
-    transform: translateY(-2px);
+    border-color: var(--accent-color);
+    transform: none; /* Remove hover movement */
 }
 
 .inventory-item-card.equipped {
@@ -823,7 +821,7 @@ input {
 }
 
 .inventory-item-card .item-equipped-label {
-    background: #ffd700;
+    background: #e0e7ff;
     color: #000;
     font-size: 10px;
     padding: 2px 5px;
@@ -836,7 +834,7 @@ input {
     padding: 10px 20px;
     background: rgba(255, 215, 0, 0.2);
     border: 1px solid #8b4513;
-    color: #ffd700;
+    color: #e0e7ff;
     border-radius: 5px;
     cursor: pointer;
     font-family: 'Courier New', monospace;
@@ -844,7 +842,7 @@ input {
 
 .back-btn:hover {
     background: rgba(255, 215, 0, 0.3);
-    border-color: #ffd700;
+    border-color: #e0e7ff;
 }
 
 /* Combat Screen Styles */
@@ -870,7 +868,7 @@ input {
 }
 
 .combatant h2 {
-    color: #ffd700;
+    color: #e0e7ff;
     margin-bottom: 15px;
 }
 
@@ -881,7 +879,7 @@ input {
 
 .vs-divider {
     font-size: 30px;
-    color: #ffd700;
+    color: #e0e7ff;
     font-weight: bold;
 }
 
@@ -924,7 +922,7 @@ input {
     grid-template-columns: 1fr 1fr;
     gap: 10px;
     font-size: 14px;
-    color: #daa520;
+    color: #a5b4fc;
 }
 
 .combat-log-container {
@@ -971,10 +969,10 @@ input {
 
 .combat-btn {
     padding: 15px 30px;
-    background: linear-gradient(45deg, #8b4513, #daa520);
-    border: 2px solid #ffd700;
+    background: linear-gradient(45deg, #8b4513, #a5b4fc);
+    border: 2px solid #e0e7ff;
     border-radius: 8px;
-    color: #ffd700;
+    color: #e0e7ff;
     font-size: 18px;
     font-weight: bold;
     font-family: 'Courier New', monospace;
@@ -983,7 +981,7 @@ input {
 }
 
 .combat-btn:hover {
-    background: linear-gradient(45deg, #daa520, #ffd700);
+    background: linear-gradient(45deg, #a5b4fc, #e0e7ff);
     color: #000;
 }
 
@@ -1003,7 +1001,7 @@ input {
 }
 
 .debug-content {
-    color: #daa520;
+    color: #a5b4fc;
 }
 
 .debug-section {
@@ -1011,7 +1009,7 @@ input {
 }
 
 .debug-section h4 {
-    color: #ffd700;
+    color: #e0e7ff;
     margin-bottom: 10px;
 }
 
@@ -1023,7 +1021,7 @@ input {
     display: flex;
     justify-content: space-around;
     background: #1a1a2e;
-    border-top: 2px solid #ffd700;
+    border-top: 2px solid #e0e7ff;
     padding: 10px 0;
     z-index: 1000;
 }
@@ -1032,11 +1030,11 @@ input {
     flex: 1;
     text-align: center;
     padding: 10px;
-    color: #daa520;
+    color: #a5b4fc;
 }
 
 .nav-button.active {
-    color: #ffd700;
+    color: #e0e7ff;
 }
 
 .character-layout {
@@ -1063,13 +1061,13 @@ input {
 
 .section-header h2 {
     margin: 0;
-    color: #ffd700;
+    color: #e0e7ff;
     font-size: 1.4em;
 }
 
 .inventory-count-badge {
     background: #8b4513;
-    color: #ffd700;
+    color: #e0e7ff;
     padding: 4px 10px;
     border-radius: 15px;
     font-weight: bold;
@@ -1109,77 +1107,6 @@ input {
     border-radius: 5px;
 }
 
-/* Equipment Grid */
-.equipment-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    padding: 20px;
-}
-
-.equipment-slot {
-    background: rgba(0, 0, 0, 0.7);
-    border: 2px solid #8b4513;
-    border-radius: 8px;
-    padding: 15px;
-    text-align: center;
-    transition: all 0.3s;
-}
-
-.equipment-slot.large {
-    grid-column: span 3;
-}
-
-.equipment-slot:hover {
-    border-color: #ffd700;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
-}
-
-.slot-label {
-    color: #ffd700;
-    font-size: 14px;
-    margin-bottom: 10px;
-    font-weight: bold;
-}
-
-.slot-content {
-    min-height: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px dashed #8b4513;
-    border-radius: 5px;
-    background: rgba(0, 0, 0, 0.3);
-    position: relative;
-    cursor: pointer;
-}
-
-.slot-content:hover {
-    border-color: #ffd700;
-    background: rgba(255, 215, 0, 0.05);
-}
-
-.equipped-item {
-    text-align: center;
-    width: 100%;
-}
-
-.equipped-item .item-icon {
-    font-size: 32px;
-    margin-bottom: 5px;
-}
-
-.equipped-item .item-name {
-    font-size: 12px;
-    line-height: 1.3;
-    margin-bottom: 5px;
-}
-
-.equipped-item .item-stats {
-    font-size: 11px;
-    opacity: 0.8;
-}
 
 /* Inventory Controls */
 .inventory-controls {
@@ -1199,7 +1126,7 @@ input {
 .sort-select {
     background: rgba(255, 215, 0, 0.2);
     border: 1px solid #8b4513;
-    color: #daa520;
+    color: #a5b4fc;
     padding: 5px 10px;
     border-radius: 5px;
     font-family: 'Courier New', monospace;
@@ -1227,7 +1154,7 @@ input {
 }
 
 .inventory-item-card:hover {
-    border-color: #ffd700;
+    border-color: #e0e7ff;
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
 }
@@ -1309,31 +1236,16 @@ input {
 }
 
 /* Add visual connection lines (optional) */
-.equipment-layout::before {
-    content: '';
-    position: absolute;
-    width: 2px;
-    height: 60%;
-    background: linear-gradient(to bottom, transparent, #8b4513, transparent);
-    left: 33.33%;
-    top: 20%;
-    opacity: 0.3;
-    pointer-events: none;
-}
-
+.equipment-layout::before,
 .equipment-layout::after {
-    content: '';
-    position: absolute;
-    width: 2px;
-    height: 60%;
-    background: linear-gradient(to bottom, transparent, #8b4513, transparent);
-    right: 33.33%;
-    top: 20%;
-    opacity: 0.3;
-    pointer-events: none;
+    display: none;
 }
 
 .equipment-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    padding: 30px;
+    min-height: 400px;
     position: relative;
 }
-

@@ -406,11 +406,11 @@ function displayRunSummary(distance, time, pace, elevation, performanceScore, lo
                     </div>
                     <div>
                         <span>${Math.floor(pace)}:${String(Math.round((pace % 1) * 60)).padStart(2, '0')}</span><br>
-                        <small>PACE /MI</small>
+                        <small>PACE/MI</small>
                     </div>
                     <div>
                         <span>${elevation}</span><br>
-                        <small>ELEVATION FT</small>
+                        <small>ELEVATION</small>
                     </div>
                 </div>
             </div>
@@ -696,12 +696,12 @@ function updateEquipmentSlots() {
             if (item.stats.dexterity > 0) statsDisplay.push(`🏃${item.stats.dexterity}`);
             if (item.stats.vitality > 0) statsDisplay.push(`❤️${item.stats.vitality}`);
             
+            // Make entire item clickable to unequip
             slotElement.innerHTML = `
-                <div class="equipped-item ${item.rarity}">
+                <div class="equipped-item ${item.rarity}" onclick="unequipItem('${slot}')">
                     <div class="item-icon">${item.icon}</div>
                     <div class="item-name rarity-color-${item.rarity}">${item.name}</div>
                     <div class="item-stats">${statsDisplay.join(' ')}</div>
-                    <button class="unequip-btn" onclick="unequipItem('${slot}')">✕</button>
                 </div>
             `;
         } else {
@@ -726,13 +726,12 @@ function getItemCategory(type) {
     return 'other';
 }
 
-// Update character inventory display
-// Update the updateCharacterInventory function to support sorting
+// Update inventory display to show equipped items can be clicked
 function updateCharacterInventory() {
     const inventoryDiv = document.getElementById('characterInventory');
     
     // Filter items based on current filter
-    let itemsToShow = [...allLootCollected]; // Make a copy for sorting
+    let itemsToShow = [...allLootCollected];
     if (currentFilter !== 'all') {
         itemsToShow = itemsToShow.filter(item => 
             getItemCategory(item.type) === currentFilter
@@ -778,7 +777,7 @@ function updateCharacterInventory() {
         
         return `
             <div class="inventory-item-card ${item.rarity} ${equipped ? 'equipped' : ''}" 
-                 onclick="${equipped ? '' : `equipItem(${JSON.stringify(item).replace(/"/g, '&quot;')})`}">
+                 onclick="equipItem(${JSON.stringify(item).replace(/"/g, '&quot;')})">
                 <div class="item-icon">${item.icon}</div>
                 <div class="item-name rarity-color-${item.rarity}">${item.name}</div>
                 <div class="item-stats">
@@ -788,22 +787,33 @@ function updateCharacterInventory() {
             </div>
         `;
     }).join('');
-    
-    if (itemsToShow.length === 0) {
-        inventoryDiv.innerHTML = '<div style="text-align: center; color: #666; padding: 40px;">No items found</div>';
-    }
 }
 
 // Equip item
 function equipItem(item) {
-    // Equip the item in its slot
-    equippedGear[item.type] = item;
+    // Check if this item is already equipped
+    const isEquipped = Object.values(equippedGear).some(equipped => 
+        equipped && equipped.timestamp === item.timestamp
+    );
     
-    // Save and update displays
-    saveEquippedGear();
-    updateCharacterStats();
-    updateEquipmentSlots();
-    updateCharacterInventory();
+    if (isEquipped) {
+        // Find which slot has this item and unequip it
+        for (const [slot, equipped] of Object.entries(equippedGear)) {
+            if (equipped && equipped.timestamp === item.timestamp) {
+                unequipItem(slot);
+                return;
+            }
+        }
+    } else {
+        // Equip the item in its slot
+        equippedGear[item.type] = item;
+        
+        // Save and update displays
+        saveEquippedGear();
+        updateCharacterStats();
+        updateEquipmentSlots();
+        updateCharacterInventory();
+    }
 }
 
 // Unequip item
@@ -892,6 +902,13 @@ function showCombatScreen(dungeonType = 'quick') {
     bossCombatStats.currentHP = bossCombatStats.vitality * 10;
     bossCombatStats.maxHP = bossCombatStats.currentHP;
     
+    // Calculate and display win probability
+    const winChance = calculateWinProbability(playerCombatStats, bossCombatStats);
+    const debugElement = document.getElementById('combatCalcDebug');
+    if (debugElement) {
+        debugElement.innerHTML = `<pre>Win Probability: ${winChance}%\n\nPlayer Total Power: ${playerCombatStats.strength + playerCombatStats.defense + playerCombatStats.dexterity + playerCombatStats.vitality}\nBoss Total Power: ${bossCombatStats.strength + bossCombatStats.defense + bossCombatStats.dexterity + bossCombatStats.vitality}</pre>`;
+    }
+    
     // Update UI
     updateCombatUI();
     document.getElementById('bossName').textContent = boss.name;
@@ -903,7 +920,6 @@ function showCombatScreen(dungeonType = 'quick') {
     
     // Reset buttons
     document.getElementById('startCombatBtn').disabled = false;
-    document.getElementById('combatBackBtn').classList.add('hidden');
 }
 
 // Update combat UI
@@ -913,16 +929,22 @@ function updateCombatUI() {
     document.getElementById('playerDef').textContent = playerCombatStats.defense;
     document.getElementById('playerDex').textContent = playerCombatStats.dexterity;
     document.getElementById('playerVit').textContent = playerCombatStats.vitality;
-    document.getElementById('playerHealthText').textContent = `${Math.max(0, playerCombatStats.currentHP)}/${playerCombatStats.maxHP}`;
-    document.getElementById('playerHealthBar').style.width = `${(playerCombatStats.currentHP / playerCombatStats.maxHP) * 100}%`;
+    
+    const playerHP = Math.max(0, playerCombatStats.currentHP);
+    document.getElementById('playerHealthText').textContent = `${playerHP}/${playerCombatStats.maxHP}`;
+    const playerHealthPercent = playerHP > 0 ? (playerHP / playerCombatStats.maxHP) * 100 : 0;
+    document.getElementById('playerHealthBar').style.width = `${playerHealthPercent}%`;
     
     // Boss stats
     document.getElementById('bossStr').textContent = bossCombatStats.strength;
     document.getElementById('bossDef').textContent = bossCombatStats.defense;
     document.getElementById('bossDex').textContent = bossCombatStats.dexterity;
     document.getElementById('bossVit').textContent = bossCombatStats.vitality;
-    document.getElementById('bossHealthText').textContent = `${Math.max(0, bossCombatStats.currentHP)}/${bossCombatStats.maxHP}`;
-    document.getElementById('bossHealthBar').style.width = `${(bossCombatStats.currentHP / bossCombatStats.maxHP) * 100}%`;
+    
+    const bossHP = Math.max(0, bossCombatStats.currentHP);
+    document.getElementById('bossHealthText').textContent = `${bossHP}/${bossCombatStats.maxHP}`;
+    const bossHealthPercent = bossHP > 0 ? (bossHP / bossCombatStats.maxHP) * 100 : 0;
+    document.getElementById('bossHealthBar').style.width = `${bossHealthPercent}%`;
 }
 
 // Add log entry
@@ -1057,6 +1079,19 @@ async function startCombat() {
 function returnFromCombat() {
     document.getElementById('combatScreen').classList.add('hidden');
     document.getElementById('characterScreen').classList.remove('hidden');
+}
+
+// Calculate win probability based on stats
+function calculateWinProbability(player, boss) {
+    // Simple win probability based on total stats
+    const playerTotal = player.strength + player.defense + player.dexterity + (player.vitality * 0.5);
+    const bossTotal = boss.strength + boss.defense + boss.dexterity + (boss.vitality * 0.5);
+    
+    // Calculate probability (sigmoid function for smooth 0-100% range)
+    const ratio = playerTotal / bossTotal;
+    const winChance = 100 / (1 + Math.exp(-3 * (ratio - 1)));
+    
+    return Math.round(winChance);
 }
 
 // Initialize character system on page load
